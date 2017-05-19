@@ -43,10 +43,8 @@ if __name__ == '__main__':
         training_data[i] = []
     for name in sorted(class_folders):
         y = int(name[3])-1 #for 0 based indexing
-        # print "class: ",y," data being procesed"
-        y_ = np.zeros(3) #7 classes
+        y_ = np.zeros(3) 
         y_[y] = 1
-        # print "class: ",y_," data being procesed"
         for img_name in os.listdir(os.getcwd()+data_folder+'/'+name):
             img_path = os.getcwd()+data_folder+'/'+name+"/"+img_name
             x = get_img(img_path).reshape(224,224,3)
@@ -94,6 +92,11 @@ if __name__ == '__main__':
 
     scores = model_1.evaluate(np.array(test_data), np.array(test_labels), verbose=0)
     
+    for imgn in range(len(test_data)):
+    	img = Image.fromarray(test_data[imgn][0])
+    	img = img.convert('L')
+    	img.save('testPath' +'/' +  str(imgn), "JPEG")
+
     print (str(model_1.metrics_names) + "\n" + str(scores) + "\n")
 
     print ("Labels: " )
@@ -128,13 +131,14 @@ if __name__ == '__main__':
             test_labels_generated.append(2)
 
     test_path = "testPath"
+    listings = os.listdir(test_path)
     f = open('image.html','w')
     message="""<html>
     <body>"""
-    for file in range(len(test_labels)):
+    for file in listings:
         actual = ""
         predict = ""
-        path= test_path + "/" + str(file)
+        path= test_path + "/" + file
         file=int(file)
         if(test_labels_generated[file]== 0):
             actual = "fut"
@@ -149,14 +153,15 @@ if __name__ == '__main__':
             predict = "lum"
         elif(predicted_labels[file]== 2):
             predict = "sec"
-        image = Image.fromarray(test_data[file].astype('uint8'))      
-        image.save(path + ".jpeg")  
-        message += """<figure>
-        <p style="float: left; font-size: 9pt; text-align: center; width: 18%; margin-right: 2%; margin-bottom: 0.5em;">
-        <img src=""" + path + ".jpeg" + " " + """alt="Mountain View" style="width: 100%">
-        <caption> true class = """ + actual + "," + " " + """predicted class=""" + predict +  """</caption></p>
-        </figure>"""
-        message += """</body>
-        </html>"""
+        if predict != actual:
+        	# image = Image.fromarray(test_data[file].astype('uint8'))      
+        	# image.save(path + ".jpeg")  
+        	message += """<figure>
+        	<p style="float: left; font-size: 9pt; text-align: center; width: 18%; margin-right: 2%; margin-bottom: 0.5em;">
+        	<img src=""" + path  + " " + """alt="Mountain View" style="width: 100%">
+        	<caption> true class = """ + actual + "," + " " + """predicted class=""" + predict +  """</caption></p>
+        	</figure>"""
+    message += """</body>
+    </html>"""
     f.write(message)
     f.close()
