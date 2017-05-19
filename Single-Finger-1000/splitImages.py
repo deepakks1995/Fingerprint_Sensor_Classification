@@ -9,15 +9,22 @@ def split_train_test_data(percentage, data_path, test_path):
 	load_data = []
 	load_data_labels = []
 	class_folders = os.listdir(os.getcwd() + "/" + data_path)
-	
+	class_weights = {}
+	total_samples = 0
 	for cls in class_folders:
 		label = int(cls[3]) - 1
 		listings = os.listdir(os.getcwd() + "/" + data_path + "/" + cls)
+		class_weights[label] = len(listings)
+		total_samples = total_samples + len(listings)
 		for file in listings:
 			img = image.load_img(os.getcwd() + "/" + data_path + "/" + cls + "/"  + file)
 			x = image.img_to_array(img)
 			load_data.append(x)
-			load_data_labels.append(int(label))
+			one_hot_encoding = np.zeros(3)
+			one_hot_encoding[label] = 1
+			load_data_labels.append(one_hot_encoding)
+	for cls in range(3):
+		class_weights[cls] = class_weights[cls] / total_samples
 	shuff_indices = [_ for _ in range(len(load_data))]
 	random.shuffle(shuff_indices)
 	train_data = []
@@ -34,7 +41,7 @@ def split_train_test_data(percentage, data_path, test_path):
 			train_data_labels.append(load_data_labels[i])
 		count = count + 1
 	save_test_data(test_data, data_path, test_path)
-	return train_data, test_data, train_data_labels, test_data_labels
+	return train_data, test_data, train_data_labels, test_data_labels, class_weights
 
 
 def save_test_data(test_data, data_path, test_path):
