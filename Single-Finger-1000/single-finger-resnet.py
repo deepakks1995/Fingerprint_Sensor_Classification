@@ -31,27 +31,29 @@ def model():
 	model = ResNet50(weights='imagenet')
 	model.layers.pop()
 	for layer in model.layers:
-		layer.trainable=False
+		layer.trainable=False	
 	new_layer1 = Dropout(0.4)(model.layers[-1].output)
 	new_layer2 = Dense(3,activation="softmax")(new_layer1)
 	model_1 = Model(input=model.input, output=[new_layer2])
 	model_1.compile(optimizer="adam", loss='categorical_crossentropy',metrics=['accuracy'])
+	model_1.summary()
 	return model_1
-	# model_1.summary()
 
 if __name__ == '__main__':
 	model_1 = model()
 	train_data, test_data, train_labels, test_labels, class_weight = split.split_train_test_data(0.2, 'training-data', 'testPath')
-	for image in train_data:
-		image = np.expand_dims(image, axis=0)
-		image = preprocess_input(image)
-	for image in test_data:
-		image = np.expand_dims(image, axis=0)
-		image = preprocess_input(image)
+	for i in range(len(train_data)):
+		train_data[i] = np.expand_dims(train_data[i], axis=0)
+		train_data[i] = preprocess_input(train_data[i])
+		train_data[i] = train_data[i].reshape(224,224,3)
+	for i in range(len(test_data)):
+		test_data[i] = np.expand_dims(test_data[i], axis=0)
+		test_data[i] = preprocess_input(test_data[i])
+		test_data[i] = test_data[i].reshape(224,224,3)
 
 	model_1.fit(np.array(train_data),
     	np.array(train_labels),
-    		epochs=1,
+    		epochs=10,
     			verbose=1,
     				shuffle=True,
     					batch_size=64,
