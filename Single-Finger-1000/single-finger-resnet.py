@@ -19,13 +19,14 @@ def printDistinguish(text):
     print str(text)
     print "**--**\n"
 
+def plot_model(history):
+	split.add_plotting_data([[_, itr] for (_, itr) in zip(range(len(history.history['acc'])), history.history['acc'])], 'ro-', 'red', 'train')
+	split.add_plotting_data([[_, itr] for (_, itr) in zip(range(len(history.history['val_acc'])), history.history['val_acc'])], 'ro-', 'blue', 'test')
+	split.plot_curve("Model_Acc_vs_Val_Acc", False, ['Epochs', 'Accuracy'])
 
-def get_img(img_path):
-    img = image.load_img(img_path, target_size=(224, 224))
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
-    return x
+	split.add_plotting_data([[_, itr] for (_, itr) in zip(range(len(history.history['loss'])), history.history['loss'])], 'ro-', 'red', 'train')
+	split.add_plotting_data([[_, itr] for (_, itr) in zip(range(len(history.history['val_loss'])), history.history['val_loss'])], 'ro-', 'blue', 'test')
+	split.plot_curve("Model_Loss_vs_Val_loss", False, ['Epochs', 'Loss'])
 
 def model():
 	model = ResNet50(weights='imagenet')
@@ -39,6 +40,25 @@ def model():
 	model_1.summary()
 	return model_1
 
+def calc_precision_and_recall(conf_matrix):
+	target_names = ['Fut', 'Lum', 'Sec']
+	for i in range(3):
+		print "Precision for class" + target_names[i],
+		sum = 0.0
+		for j in range(3):
+			sum = sum + conf_matrix[i][j]
+		precision_class = conf_matrix[i][i] / sum
+		print ": " + str(precision_class)
+
+	for i in range(3):
+		print "Recall for class" + target_names[i],
+		sum = 0.0
+		for j in range(3):
+			sum = sum + conf_matrix[j][0]
+		recall_class = conf_matrix[i][i] / sum
+		print ": " + str(recall_class)
+
+
 if __name__ == '__main__':
 	model_1 = model()
 	train_data, test_data, train_labels, test_labels, class_weight = split.split_train_test_data(0.2, 'training-data', 'testPath')
@@ -51,37 +71,30 @@ if __name__ == '__main__':
 		test_data[i] = preprocess_input(test_data[i])
 		test_data[i] = test_data[i].reshape(224,224,3)
 
-	model_1.fit(np.array(train_data),
-    	np.array(train_labels),
-    		epochs=10,
-    			verbose=1,
-    				shuffle=True,
-    					batch_size=64,
-    				        validation_data=(np.array(test_data), np.array(test_labels)),
-    					       class_weight=class_weight)
+	history = model_1.fit(np.array(train_data),
+				np.array(train_labels),
+    				epochs=10,
+    					verbose=1,
+    						shuffle=True,
+    							batch_size=64,
+    				        		validation_data=(np.array(test_data), np.array(test_labels)),
+    					       			class_weight=class_weight)
+
 	scores = model_1.evaluate(np.array(test_data), np.array(test_labels), verbose=0)
+
+	plot_model(history)
 
 	print (str(model_1.metrics_names) + "\n" + str(scores) + "\n")
 
 	predicted_labels = model_1.predict(np.array(test_data))
 	
 	predicted_labels = np.argmax(predicted_labels, axis=1)
-	
-	target_names = ['Fut', 'Lum', 'Sec']
-
-	print predicted_labels
 
 	conf_matrix = confusion_matrix(np.argmax(test_labels, axis=1), predicted_labels)
 
 	printDistinguish("CONFUSION MATRIX:\n"+ str(conf_matrix) )
 
-	for i in range(3):
-		print "Precision for class " + target_names[i]
-		sum = 0.0
-		for j in range(3):
-			sum = sum + conf_matrix[i][j]
-		precision_class = conf_matrix[i][i] / sum
-		print ": " + str(precision_class) 
+	calc_precision_and_recall(conf_matrix) 
 
 	test_labels_generated = []
 	for list in test_labels:

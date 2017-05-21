@@ -2,8 +2,16 @@ import numpy as np
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
 from PIL import Image
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import random
 import os
+
+plotting_data = []
+plotting_type = []
+plotting_color = []
+legend_label = []
 
 def split_train_test_data(percentage, data_path, test_path):
 	load_data = []
@@ -53,6 +61,54 @@ def save_test_data(test_data, data_path, test_path):
 		img = Image.fromarray(test_data[i].astype('uint8'))
 		img.save(os.getcwd() + "/" + test_path + "/" + str(i), "JPEG")
 
+
+'''
+*	This function is to add data to a global variable
+*	which is used to plot in future
+*	author: Deepak
+'''
+def add_plotting_data(x,str,color, legend):
+	global plotting_data, plotting_type, plotting_color
+	plotting_data.append(x)
+	plotting_type.append(str)
+	plotting_color.append(color)
+	legend_label.append(legend)
+	return True
+
+'''
+*	This function is to plot curves with different types
+*	author: Deepak
+'''
+def plot_curve(str,axis, axis_label):
+	global plotting_data, plotting_type, plotting_color, legend_label
+	plt.ioff()
+	fig = plt.figure(str)
+	ax = fig.add_subplot(111)
+	plt.axis(axis) if isinstance(axis, list) else True 
+	lines = []
+	for i in range(len(plotting_data)):
+		x = []
+		y = []
+		x = [itr[0] for itr in plotting_data[i]]
+		y = [itr[1] for itr in plotting_data[i]]
+		if plotting_type[i] != 'None':
+			line, = ax.plot(x,y,plotting_type[i], color=plotting_color[i], label=legend_label[i])
+		else:
+			line, = ax.plot(x,y,color=plotting_color[i], label= legend_label[i])
+		lines.append(line)
+	ax.set_xlabel(axis_label[0])
+	ax.set_ylabel(axis_label[1])
+	fig.legend(lines, legend_label)
+	fig.savefig("Output/" + str + ".png")
+	plt.close(fig)
+	plotting_data = []
+	plotting_color = []
+	plotting_type = []
+	legend_label = []
+	return True
+
+
+
 if __name__=='__main__':
-	split_train_test_data(0.2, 'training-data',  'testPath')
+	# split_train_test_data(0.2, 'training-data',  'testPath')
 	print 'You are running the Wrong file' 
