@@ -43,7 +43,7 @@ def model():
 	return model_1
 
 def calc_precision_and_recall(conf_matrix):
-	target_names = ['Fut', 'Lum', 'Sec']
+	target_names = ['Crm', 'Mor', 'Sag']
 	for i in range(3):
 		print "Precision for class" + target_names[i],
 		sum = 0.0
@@ -123,18 +123,18 @@ if __name__ == '__main__':
 		path= test_path + "/" + file
 		file=int(file)
 		if(test_labels_generated[file]== 0):
-			actual = "fut"
+			actual = "Crm"
 		elif (test_labels_generated[file]== 1):
-			actual = "lum"
+			actual = "Mor"
 		elif (test_labels_generated[file]== 2):
-			actual = "sec"
+			actual = "Sag"
 
 		if(predicted_labels[file]== 0):
-			predict = "fut"
+			predict = "Crm"
 		elif(predicted_labels[file]== 1):
-			predict = "lum"
+			predict = "Mor"
 		elif(predicted_labels[file]== 2):
-			predict = "sec"
+			predict = "Sag"
 		if predict != actual:
 			message += """<figure>
 			<p style="float: left; font-size: 9pt; text-align: center; width: 18%; margin-right: 2%; margin-bottom: 0.5em;">
