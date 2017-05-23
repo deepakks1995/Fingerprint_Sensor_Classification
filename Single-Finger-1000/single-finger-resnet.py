@@ -14,6 +14,8 @@ import numpy as np
 import os
 import random   
 
+epochs = 20
+
 def printDistinguish(text):
     print "\n**--**"
     print str(text)
@@ -54,12 +56,13 @@ def calc_precision_and_recall(conf_matrix):
 		print "Recall for class" + target_names[i],
 		sum = 0.0
 		for j in range(3):
-			sum = sum + conf_matrix[j][0]
+			sum = sum + conf_matrix[j][i]
 		recall_class = conf_matrix[i][i] / sum
 		print ": " + str(recall_class)
 
 
 if __name__ == '__main__':
+	global epochs
 	model_1 = model()
 	train_data, test_data, train_labels, test_labels, class_weight = split.split_train_test_data(0.2, 'training-data', 'testPath')
 	for i in range(len(train_data)):
@@ -73,14 +76,19 @@ if __name__ == '__main__':
 
 	history = model_1.fit(np.array(train_data),
 				np.array(train_labels),
-    				epochs=10,
+    				epochs=epochs,
     					verbose=1,
     						shuffle=True,
     							batch_size=64,
     				        		validation_data=(np.array(test_data), np.array(test_labels)),
     					       			class_weight=class_weight)
-
+	
 	scores = model_1.evaluate(np.array(test_data), np.array(test_labels), verbose=0)
+
+	model_json = model_1.to_json()
+	with open("model.json", "w") as json_file:
+		json_file.write(model_json)
+	model_1.save_weights("model.h5")
 
 	plot_model(history)
 
